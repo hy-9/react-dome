@@ -3,6 +3,16 @@ import Card from '@mui/material/Card';
 import CardContent from '@mui/material/CardContent';
 import { TextField } from '@mui/material';
 import { useState } from 'react';
+import fetch from '~/request/fetch';
+
+
+interface Response<T> {
+	code: number,
+	data: T,
+	msg: string,
+	status: number
+}
+
 
 export default function LogIn() {
 	const [loginInfo, setLoginInfo] = useState(
@@ -11,8 +21,27 @@ export default function LogIn() {
 			password: ''
 		}
 	);
-	function handleLogin() {
-		alert('login')
+	async function handleLogin() {
+		let res;
+		try {
+			res = await fetch.laterInterception<Response<object|number>>({
+			url: 'users/login',
+			method: 'POST',
+			data: loginInfo
+		},function(res:Response<object|number>){
+
+			if (res.code==2000) {
+				return res.data;
+			}
+			throw new Error(res.msg);
+		})
+		} catch (error:any) {
+			if (error.name="Error") {
+				alert(error.message)
+			}
+			console.dir(error)
+		}
+		console.log({res});
 	};
 	function handleRegister() {
 		alert('register')
@@ -36,15 +65,15 @@ export default function LogIn() {
 					/>
 					<TextField id="standard-basic" label="密码" variant="standard"
 						onChange={(e) => { setLoginInfo({ username: loginInfo.username, password: e.target.value }) }}
-						slotProps={{ htmlInput: { 'value': loginInfo.password } }}
+						slotProps={{ htmlInput: { 'value': loginInfo.password, 'type': 'password' } }}
 					/>
 				</div>
 				<div className='mt-4 flex justify-between'>
 					<Button variant="contained" className=' w-[45%]'
-						onClick={ handleLogin }
+						onClick={handleLogin}
 					>登陆</Button>
 					<Button variant="contained" className=' w-[45%]'
-					onClick={ handleRegister }
+						onClick={handleRegister}
 					>注册</Button>
 				</div>
 			</Card>
